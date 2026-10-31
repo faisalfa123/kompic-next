@@ -1,46 +1,54 @@
 // kompic-next Frontend Application Controller
-let authPassword = sessionStorage.getItem("kompic_auth") || "";
+let authToken = sessionStorage.getItem("kompic_token") || "";
 
 document.addEventListener("DOMContentLoaded", () => {
   checkAuth();
   startMetricsPolling();
-  loadSettings();
 });
 
-// Autentikasi
+// Autentikasi dengan token JWT/Bearer
 function checkAuth() {
-  fetch("/api/stats", {
-    headers: { "X-Admin-Password": authPassword }
-  })
-    .then(res => {
-      if (res.status === 401) {
+  fetch("/api/auth/status" + (authToken ? `?token=${encodeURIComponent(authToken)}` : ""))
+    .then(res => res.json())
+    .then(data => {
+      if (data.auth_required && !data.authenticated) {
         document.getElementById("authModal").style.display = "flex";
       } else {
         document.getElementById("authModal").style.display = "none";
         refreshDashboard();
+        loadSettings();
       }
     })
     .catch(() => {
-      // Offline or network error
+      // offline fallback
     });
 }
 
 function verifyPassword() {
   const pwd = document.getElementById("authPassword").value;
-  fetch("/api/stats", {
-    headers: { "X-Admin-Password": pwd }
-  }).then(res => {
-    if (res.ok) {
-      authPassword = pwd;
-      sessionStorage.setItem("kompic_auth", pwd);
-      document.getElementById("authModal").style.display = "none";
-      document.getElementById("authError").style.display = "none";
-      refreshDashboard();
-      loadSettings();
-    } else {
+  if (!pwd) return;
+
+  fetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password: pwd })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success && data.token) {
+        authToken = data.token;
+        sessionStorage.setItem("kompic_token", authToken);
+        document.getElementById("authModal").style.display = "none";
+        document.getElementById("authError").style.display = "none";
+        refreshDashboard();
+        loadSettings();
+      } else {
+        document.getElementById("authError").style.display = "block";
+      }
+    })
+    .catch(() => {
       document.getElementById("authError").style.display = "block";
-    }
-  });
+    });
 }
 
 // Navigasi Tab
@@ -75,10 +83,19 @@ function toggleSidebar() {
   document.getElementById("sidebar").classList.toggle("open");
 }
 
+// Helper fetch dengan Authorization Header
+function authFetch(url, options = {}) {
+  options.headers = options.headers || {};
+  if (authToken) {
+    options.headers["Authorization"] = `Bearer ${authToken}`;
+  }
+  return fetch(url, options);
+}
+
 // Polling Metrik Realtime
 function startMetricsPolling() {
   setInterval(() => {
-    if (authPassword || document.getElementById("authModal").style.display === "none") {
+    if (document.getElementById("authModal").style.display === "none") {
       refreshDashboard();
     }
   }, 4000);
@@ -86,7 +103,7 @@ function startMetricsPolling() {
 
 function refreshDashboard() {
   // 1. Stats
-  fetch("/api/stats", { headers: { "X-Admin-Password": authPassword } })
+  authFetch("/api/stats")
     .then(r => r.json())
     .then(data => {
       const savedBytes = data.total_saved_bytes || 0;
@@ -101,17 +118,16 @@ function refreshDashboard() {
     .catch(() => {});
 
   // 2. System Hardware Metrics
-  fetch("/api/system", { headers: { "X-Admin-Password": authPassword } })
+  authFetch("/api/system")
     .then(r => r.json())
     .then(hw => {
-      // Suhu
+      // Suhu CPU
       const temp = hw.cpu_temp_c || 0;
       document.getElementById("valTemp").innerText = `${temp.toFixed(1)} °C`;
       document.getElementById("gaugeTempVal").innerText = Math.round(temp);
 
       const circle = document.getElementById("tempGaugeCircle");
       if (circle) {
-        // Circumference = 2 * PI * 45 ≈ 283
         const maxT = 80;
         const pct = Math.min(Math.max(temp / maxT, 0), 1);
         const offset = 283 - (pct * 283);
@@ -135,7 +151,7 @@ function refreshDashboard() {
         }
       }
 
-      // RAM
+      // RAM S905X
       const ramUsed = hw.ram_used_mb || 0;
       const ramTotal = hw.ram_total_mb || 2048;
       document.getElementById("valRam").innerText = `${ramUsed} MB`;
@@ -145,7 +161,7 @@ function refreshDashboard() {
       document.getElementById("valLoad").innerText = `${hw.load_1 || '0.10'}, ${hw.load_5 || '0.15'}, ${hw.load_15 || '0.20'}`;
       if (hw.uptime_text) document.getElementById("valUptime").innerText = hw.uptime_text;
 
-      // Disk Media
+      // Disk Media /mnt/hdd1
       if (hw.media_disk_used) {
         document.getElementById("diskUsed").innerText = hw.media_disk_used;
         document.getElementById("diskFree").innerText = hw.media_disk_free;
@@ -155,7 +171,7 @@ function refreshDashboard() {
     .catch(() => {});
 
   // 3. Recent Files
-  fetch("/api/files?limit=5", { headers: { "X-Admin-Password": authPassword } })
+  authFetch("/api/files?limit=5")
     .then(r => r.json())
     .then(files => {
       const tbody = document.getElementById("recentFilesTable");
@@ -188,7 +204,7 @@ function renderFileRow(f) {
 }
 
 function loadAllFiles() {
-  fetch("/api/files?limit=100", { headers: { "X-Admin-Password": authPassword } })
+  authFetch("/api/files?limit=100")
     .then(r => r.json())
     .then(files => {
       const tbody = document.getElementById("allFilesTable");
@@ -211,7 +227,7 @@ function filterLogTable() {
 
 // Settings Form Handlers
 function loadSettings() {
-  fetch("/api/settings", { headers: { "X-Admin-Password": authPassword } })
+  authFetch("/api/settings")
     .then(r => r.json())
     .then(cfg => {
       if (!cfg || !cfg.server) return;
@@ -257,20 +273,17 @@ function saveSettings(e) {
     }
   };
 
-  fetch("/api/settings", {
+  authFetch("/api/settings", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Admin-Password": authPassword
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   })
     .then(r => r.json())
     .then(res => {
       alert("✅ Konfigurasi berhasil disimpan dan dimuat ulang!");
-      if (payload.server.new_password) {
-        authPassword = payload.server.new_password;
-        sessionStorage.setItem("kompic_auth", authPassword);
+      if (res.token) {
+        authToken = res.token;
+        sessionStorage.setItem("kompic_token", authToken);
       }
       loadSettings();
     })
@@ -280,12 +293,10 @@ function saveSettings(e) {
 }
 
 function triggerRescan() {
-  fetch("/api/scan", {
-    method: "POST",
-    headers: { "X-Admin-Password": authPassword }
-  }).then(() => {
-    alert("⚡ Pindai folder Immich dimulai di latar belakang!");
-  });
+  authFetch("/api/scan", { method: "POST" })
+    .then(() => {
+      alert("⚡ Pindai folder Immich dimulai di latar belakang!");
+    });
 }
 
 function formatBytes(bytes) {
