@@ -6,10 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
   startMetricsPolling();
 });
 
-// Autentikasi dengan token JWT/Bearer
 function checkAuth() {
   fetch("/api/auth/status" + (authToken ? `?token=${encodeURIComponent(authToken)}` : ""))
-    .then(res => res.json())
+    .then(r => r.json())
     .then(data => {
       if (data.auth_required && !data.authenticated) {
         document.getElementById("authModal").style.display = "flex";
@@ -19,9 +18,7 @@ function checkAuth() {
         loadSettings();
       }
     })
-    .catch(() => {
-      // offline fallback
-    });
+    .catch(() => {});
 }
 
 function verifyPassword() {
@@ -33,7 +30,7 @@ function verifyPassword() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ password: pwd })
   })
-    .then(res => res.json())
+    .then(r => r.json())
     .then(data => {
       if (data.success && data.token) {
         authToken = data.token;
@@ -51,7 +48,14 @@ function verifyPassword() {
     });
 }
 
-// Navigasi Tab
+function authFetch(url, options = {}) {
+  options.headers = options.headers || {};
+  if (authToken) {
+    options.headers["Authorization"] = `Bearer ${authToken}`;
+  }
+  return fetch(url, options);
+}
+
 function switchTab(tabId) {
   document.querySelectorAll(".tab-pane").forEach(el => el.classList.remove("active"));
   document.querySelectorAll(".nav-link").forEach(el => el.classList.remove("active"));
@@ -68,164 +72,224 @@ function switchTab(tabId) {
 
   const titles = {
     dashboard: "Dashboard Ringkasan",
-    pipeline: "Pipeline Real-time",
-    activity: "Log & Riwayat Kompresi",
-    settings: "Konfigurasi Sistem"
+    pipeline: "n8n Workflow Eksekusi",
+    activity: "Log Aktivitas Sistem",
+    settings: "Pengaturan & Cloud Backup"
   };
   document.getElementById("pageTitle").innerText = titles[tabId] || "kompic-next";
 
   if (tabId === "activity") {
-    loadAllFiles();
+    loadRawLogs();
   }
 }
 
-function toggleSidebar() {
-  document.getElementById("sidebar").classList.toggle("open");
-}
-
-// Helper fetch dengan Authorization Header
-function authFetch(url, options = {}) {
-  options.headers = options.headers || {};
-  if (authToken) {
-    options.headers["Authorization"] = `Bearer ${authToken}`;
-  }
-  return fetch(url, options);
-}
-
-// Polling Metrik Realtime
 function startMetricsPolling() {
   setInterval(() => {
     if (document.getElementById("authModal").style.display === "none") {
       refreshDashboard();
     }
-  }, 4000);
+  }, 3000);
 }
 
 function refreshDashboard() {
-  // 1. Stats
+  // 1. Ambil Stats Utama (Sesuai Referensi Gambar 4)
   authFetch("/api/stats")
     .then(r => r.json())
     .then(data => {
       const savedBytes = data.total_saved_bytes || 0;
       document.getElementById("valSaved").innerText = formatBytes(savedBytes);
-      const processed = data.total_processed || 0;
-      document.getElementById("valProcessed").innerText = processed;
 
-      const totalOrig = data.total_original_bytes || 1;
+      const totalOrig = data.total_orig_bytes || data.total_original_bytes || 1;
       const ratio = totalOrig > 0 ? ((savedBytes / totalOrig) * 100).toFixed(1) : 0;
-      document.getElementById("subSavedRatio").innerText = `Rasio efisiensi: ${ratio}%`;
+      const totalCount = data.total_files || (data.success + data.skipped + data.error + data.pending) || 0;
+      document.getElementById("subSavedRatio").innerText = `Hemat ${ratio}% (Koleksi: ${totalCount} berkas)`;
+
+      const pending = data.pending || 0;
+      const processing = data.processing || (data.active_jobs ? data.active_jobs.length : 0);
+      document.getElementById("valQueue").innerText = pending + processing;
+      document.getElementById("subWorkers").innerText = `Aktif memproses: ${processing} file`;
+
+      document.getElementById("valSuccess").innerText = data.success || 0;
+      document.getElementById("valSkipped").innerText = data.skipped || 0;
+      document.getElementById("valError").innerText = data.error || 0;
+
+      // Update Active Node pada n8n Workflow
+      const activeNode = data.active_node || "start";
+      updateWorkflowNode(activeNode);
     })
     .catch(() => {});
 
-  // 2. System Hardware Metrics
+  // 2. Hardware Suhu S905X
   authFetch("/api/system")
     .then(r => r.json())
     .then(hw => {
-      // Suhu CPU
       const temp = hw.cpu_temp_c || 0;
       document.getElementById("valTemp").innerText = `${temp.toFixed(1)} °C`;
-      document.getElementById("gaugeTempVal").innerText = Math.round(temp);
+      document.getElementById("headerTemp").innerText = `${temp.toFixed(1)} °C`;
 
-      const circle = document.getElementById("tempGaugeCircle");
-      if (circle) {
-        const maxT = 80;
-        const pct = Math.min(Math.max(temp / maxT, 0), 1);
-        const offset = 283 - (pct * 283);
-        circle.style.strokeDashoffset = offset;
-
-        if (temp > 68) {
-          circle.style.stroke = "var(--danger)";
-          document.getElementById("thermalDot").style.background = "var(--danger)";
-          document.getElementById("thermalDot").style.boxShadow = "0 0 8px var(--danger)";
-          document.getElementById("engineStatusText").innerText = "Thermal: Throttling (>68°C)";
-        } else if (temp > 60) {
-          circle.style.stroke = "var(--warning)";
-          document.getElementById("thermalDot").style.background = "var(--warning)";
-          document.getElementById("thermalDot").style.boxShadow = "0 0 8px var(--warning)";
-          document.getElementById("engineStatusText").innerText = "Thermal: Hangat";
-        } else {
-          circle.style.stroke = "var(--success)";
-          document.getElementById("thermalDot").style.background = "var(--success)";
-          document.getElementById("thermalDot").style.boxShadow = "0 0 8px var(--success)";
-          document.getElementById("engineStatusText").innerText = "Thermal Guard: Aman";
-        }
-      }
-
-      // RAM S905X
-      const ramUsed = hw.ram_used_mb || 0;
-      const ramTotal = hw.ram_total_mb || 2048;
-      document.getElementById("valRam").innerText = `${ramUsed} MB`;
-      document.getElementById("subRamTotal").innerText = `dari ${ramTotal} MB RAM`;
-
-      // Load Avg & Uptime
-      document.getElementById("valLoad").innerText = `${hw.load_1 || '0.10'}, ${hw.load_5 || '0.15'}, ${hw.load_15 || '0.20'}`;
-      if (hw.uptime_text) document.getElementById("valUptime").innerText = hw.uptime_text;
-
-      // Disk Media /mnt/hdd1
-      if (hw.media_disk_used) {
-        document.getElementById("diskUsed").innerText = hw.media_disk_used;
-        document.getElementById("diskFree").innerText = hw.media_disk_free;
-        document.getElementById("diskBar").style.width = `${hw.media_disk_pct || 0}%`;
+      const dot = document.getElementById("thermalDot");
+      if (temp > 68) {
+        dot.style.background = "var(--danger)";
+      } else if (temp > 60) {
+        dot.style.background = "var(--warning)";
+      } else {
+        dot.style.background = "var(--success)";
       }
     })
     .catch(() => {});
 
-  // 3. Recent Files
-  authFetch("/api/files?limit=5")
+  // 3. Tabel Log File (Kategori: EFISIEN, HEMAT, BETTER, BOROS)
+  authFetch("/api/files?limit=30")
     .then(r => r.json())
     .then(files => {
-      const tbody = document.getElementById("recentFilesTable");
-      if (!files || files.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-dim); padding:24px;">Belum ada media yang dioptimasi. Menunggu file baru di Immich.</td></tr>`;
-        return;
-      }
-      tbody.innerHTML = files.map(f => renderFileRow(f)).join("");
+      renderTable(files);
     })
     .catch(() => {});
 }
 
-function renderFileRow(f) {
-  const saved = f.original_size - f.compressed_size;
-  const savedText = saved > 0 ? formatBytes(saved) : "0 B (Skip)";
-  const savedBadge = saved > 0 ? "badge-success" : "badge-warning";
-  const dateStr = f.timestamp ? new Date(f.timestamp).toLocaleTimeString() : "--";
-  const filename = f.file_path ? f.file_path.split("/").pop() : "media";
+function updateWorkflowNode(nodeName) {
+  document.getElementById("headerNodeStatus").innerText = `Node Aktif: ${nodeName.toUpperCase()}`;
 
-  return `
-    <tr>
-      <td style="font-weight:600; font-family:'JetBrains Mono', monospace; font-size:0.8rem;">${filename}</td>
-      <td>${formatBytes(f.original_size)}</td>
-      <td>${formatBytes(f.compressed_size)}</td>
-      <td><span class="badge-tag ${savedBadge}">${savedText}</span></td>
-      <td><span class="badge-tag badge-info">GPS Terlindungi</span></td>
-      <td style="color:var(--text-dim); font-size:0.78rem;">${dateStr}</td>
-    </tr>
-  `;
+  // Reset all nodes
+  document.querySelectorAll(".n8n-node").forEach(n => n.classList.remove("active-pulse"));
+  document.querySelectorAll(".n8n-curve").forEach(c => c.classList.remove("curve-active"));
+
+  // Highlight active node
+  const nodeEl = document.getElementById(`node-${nodeName}`);
+  if (nodeEl) {
+    nodeEl.classList.add("active-pulse");
+  }
+
+  // Aktifkan garis kurva yang relevan
+  if (nodeName === "start" || nodeName === "temp_check") {
+    document.getElementById("curve-start-temp")?.classList.add("curve-active");
+  } else if (nodeName === "compress") {
+    document.getElementById("curve-temp-comp")?.classList.add("curve-active");
+  } else if (nodeName === "compare") {
+    document.getElementById("curve-comp-compare")?.classList.add("curve-active");
+  } else if (nodeName === "replace") {
+    document.getElementById("curve-compare-replace")?.classList.add("curve-active");
+    document.getElementById("curve-replace-cloud")?.classList.add("curve-active");
+  } else if (nodeName === "skip") {
+    document.getElementById("curve-compare-skip")?.classList.add("curve-active");
+  } else if (nodeName === "sync") {
+    document.getElementById("curve-replace-cloud")?.classList.add("curve-active");
+  }
 }
 
-function loadAllFiles() {
-  authFetch("/api/files?limit=100")
-    .then(r => r.json())
-    .then(files => {
-      const tbody = document.getElementById("allFilesTable");
-      if (!files || files.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-dim); padding:24px;">Belum ada media.</td></tr>`;
-        return;
+function renderTable(files) {
+  const tbody = document.getElementById("filesTableBody");
+  if (!files || files.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-dim); padding: 24px;">Belum ada media yang dioptimasi.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = files.map(f => {
+    const isVideo = f.file_path && f.file_path.match(/\.(mp4|mov|m4v|mkv)$/i);
+    const typeBadge = isVideo ? `<span style="background: rgba(99,102,241,0.2); color:#c7d2fe; padding:2px 6px; border-radius:4px; font-weight:700;">V</span>` : `<span style="background: rgba(16,185,129,0.2); color:#a7f3d0; padding:2px 6px; border-radius:4px; font-weight:700;">P</span>`;
+    
+    // Status text
+    let statusText = f.status;
+    let statusColor = "var(--text-dim)";
+    if (f.status === "SUCCESS") statusColor = "var(--success)";
+    else if (f.status === "SKIPPED") statusColor = "var(--warning)";
+    else if (f.status === "PENDING") statusColor = "var(--info)";
+
+    // Metadata Badges
+    let metaBadges = `<span class="badge-meta">✓ Metadata Aman</span>`;
+    if (f.safe_tags && f.safe_tags.length > 0) {
+      metaBadges = f.safe_tags.map(t => `<span class="badge-meta">✓ ${t}</span>`).join(" ");
+    }
+
+    const origMB = (f.orig_size / (1024 * 1024)).toFixed(2);
+    const compMB = (f.comp_size / (1024 * 1024)).toFixed(2);
+    const ratio = f.ratio ? f.ratio.toFixed(1) + "%" : "0.0%";
+
+    // Aturan Kategori Sesuai Permintaan User:
+    // < 1MB = EFISIEN, 1-2MB = HEMAT, > 2MB = BETTER, Boros = BOROS
+    let cat = f.category || "EFISIEN";
+    let catClass = "badge-efisien";
+    if (f.status === "SKIPPED" || cat === "BOROS") {
+      cat = "BOROS (SKIP)";
+      catClass = "badge-boros";
+    } else {
+      const cSizeMB = f.comp_size / (1024 * 1024);
+      if (cSizeMB < 1.0) {
+        cat = "EFISIEN";
+        catClass = "badge-efisien";
+      } else if (cSizeMB <= 2.0) {
+        cat = "HEMAT";
+        catClass = "badge-hemat";
+      } else {
+        cat = "BETTER";
+        catClass = "badge-better";
       }
-      tbody.innerHTML = files.map(f => renderFileRow(f)).join("");
-    });
+    }
+
+    const timeStr = f.processed_time || "--";
+    const filename = f.file_name || (f.file_path ? f.file_path.split("/").pop() : "media");
+
+    return `
+      <tr>
+        <td style="font-family:'JetBrains Mono', monospace; font-weight:600; font-size:0.78rem;">${filename}</td>
+        <td>${typeBadge}</td>
+        <td style="color:${statusColor}; font-weight:700;">${statusText}</td>
+        <td>${metaBadges}</td>
+        <td>${origMB}</td>
+        <td>${compMB}</td>
+        <td style="font-weight:600; color:${f.saved_bytes > 0 ? 'var(--success)' : 'var(--text-dim)'};">${ratio}</td>
+        <td><span class="badge-cat ${catClass}">${cat}</span></td>
+        <td style="color:var(--text-dim); font-size:0.75rem;">${timeStr}</td>
+      </tr>
+    `;
+  }).join("");
 }
 
-function filterLogTable() {
-  const query = document.getElementById("logSearch").value.toLowerCase();
-  const rows = document.querySelectorAll("#allFilesTable tr");
+function filterTable() {
+  const query = document.getElementById("tableFilter").value.toLowerCase();
+  const rows = document.querySelectorAll("#filesTableBody tr");
   rows.forEach(r => {
-    const text = r.innerText.toLowerCase();
-    r.style.display = text.includes(query) ? "" : "none";
+    r.style.display = r.innerText.toLowerCase().includes(query) ? "" : "none";
   });
 }
 
-// Settings Form Handlers
+// Quick Actions
+function setMode(mode) {
+  authFetch("/api/control/mode", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode })
+  }).then(() => {
+    alert(`Mode berhasil diubah ke: ${mode.toUpperCase()}`);
+    refreshDashboard();
+  });
+}
+
+function setControl(action) {
+  authFetch(`/api/control/${action}`, { method: "POST" })
+    .then(() => {
+      alert(`Kontrol mesin: ${action.toUpperCase()} berhasil dikirim!`);
+      refreshDashboard();
+    });
+}
+
+function triggerScan() {
+  authFetch("/api/scan", { method: "POST" })
+    .then(() => {
+      alert("Pindai folder Immich dimulai di latar belakang!");
+      refreshDashboard();
+    });
+}
+
+function loadRawLogs() {
+  authFetch("/api/logs?name=supervisor")
+    .then(r => r.text())
+    .then(txt => {
+      document.getElementById("rawLogBox").innerText = txt || "Belum ada catatan log terbaru.";
+    })
+    .catch(() => {});
+}
+
 function loadSettings() {
   authFetch("/api/settings")
     .then(r => r.json())
@@ -233,20 +297,12 @@ function loadSettings() {
       if (!cfg || !cfg.server) return;
       document.getElementById("cfgPort").value = cfg.server.port || 3333;
       document.getElementById("cfgImmichDir").value = cfg.storage.immich_upload_dir || "/mnt/hdd1/immich/upload/upload";
-      document.getElementById("lblImmichDir").innerText = cfg.storage.immich_upload_dir || "/mnt/hdd1/immich/upload/upload";
-
       document.getElementById("cfgMaxTemp").value = cfg.thermal.max_temp_c || 68;
-      document.getElementById("cfgCooldownTemp").value = cfg.thermal.cooldown_temp_c || 60;
-      document.getElementById("cfgVideoThreads").value = cfg.compression.video_threads || 1;
-
-      document.getElementById("cfgPhotoQuality").value = cfg.compression.photo_quality || 82;
-      document.getElementById("cfgPhotoMaxDim").value = cfg.compression.photo_max_dim || 2560;
-      document.getElementById("cfgVideoCRF").value = cfg.compression.video_crf || 26;
-
-      document.getElementById("cfgMaxVideoWorkers").value = cfg.compression.max_video_workers || 1;
-      document.getElementById("cfgMaxPhotoWorkers").value = cfg.compression.max_photo_workers || 2;
-    })
-    .catch(() => {});
+      if (cfg.backup) {
+        document.getElementById("cfgRcloneRemote").value = cfg.backup.rclone_remote || "mega:ImmichBackup";
+        document.getElementById("cfgRcloneGPhotos").value = cfg.backup.rclone_remote_gphotos || "gphotos:media/by-month";
+      }
+    });
 }
 
 function saveSettings(e) {
@@ -260,16 +316,11 @@ function saveSettings(e) {
       immich_upload_dir: document.getElementById("cfgImmichDir").value
     },
     thermal: {
-      max_temp_c: parseFloat(document.getElementById("cfgMaxTemp").value),
-      cooldown_temp_c: parseFloat(document.getElementById("cfgCooldownTemp").value)
+      max_temp_c: parseFloat(document.getElementById("cfgMaxTemp").value)
     },
-    compression: {
-      video_threads: parseInt(document.getElementById("cfgVideoThreads").value),
-      photo_quality: parseInt(document.getElementById("cfgPhotoQuality").value),
-      photo_max_dim: parseInt(document.getElementById("cfgPhotoMaxDim").value),
-      video_crf: parseInt(document.getElementById("cfgVideoCRF").value),
-      max_video_workers: parseInt(document.getElementById("cfgMaxVideoWorkers").value),
-      max_photo_workers: parseInt(document.getElementById("cfgMaxPhotoWorkers").value)
+    backup: {
+      rclone_remote: document.getElementById("cfgRcloneRemote").value,
+      rclone_remote_gphotos: document.getElementById("cfgRcloneGPhotos").value
     }
   };
 
@@ -277,26 +328,10 @@ function saveSettings(e) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
-  })
-    .then(r => r.json())
-    .then(res => {
-      alert("✅ Konfigurasi berhasil disimpan dan dimuat ulang!");
-      if (res.token) {
-        authToken = res.token;
-        sessionStorage.setItem("kompic_token", authToken);
-      }
-      loadSettings();
-    })
-    .catch(err => {
-      alert("❌ Gagal menyimpan konfigurasi: " + err);
-    });
-}
-
-function triggerRescan() {
-  authFetch("/api/scan", { method: "POST" })
-    .then(() => {
-      alert("⚡ Pindai folder Immich dimulai di latar belakang!");
-    });
+  }).then(() => {
+    alert("✅ Konfigurasi dan cloud remote berhasil disimpan!");
+    loadSettings();
+  });
 }
 
 function formatBytes(bytes) {

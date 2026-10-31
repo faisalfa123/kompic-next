@@ -114,18 +114,18 @@ func getDefaultConfig() Config {
 	c.Compression.PhotoQuality = 82
 	c.Compression.PhotoMaxDim = 2560
 	c.Compression.MaxVideoWorkers = 1
-	c.Compression.MaxPhotoWorkers = 2
+	c.Compression.MaxPhotoWorkers = 3
 
 	c.Thermal.Enabled = true
-	c.Thermal.MaxTempC = 68.0
-	c.Thermal.CooldownTempC = 60.0
+	c.Thermal.MaxTempC = 75.0
+	c.Thermal.CooldownTempC = 65.0
 	c.Thermal.ThermalZonePath = "/sys/class/thermal/thermal_zone0/temp"
 
 	c.Schedule.Enabled = false
 	c.Schedule.StartHour = 1
 	c.Schedule.EndHour = 6
 
-	c.Backup.Enabled = false
+	c.Backup.Enabled = true
 	c.Backup.Mode = "normal"
 	c.Backup.RcloneRemote = "mega:ImmichBackup"
 	c.Backup.RcloneArgs = "--transfers=1 --checkers=2 --fast-list --bwlimit=5M"
@@ -2217,5 +2217,4 @@ func main() {
 		log.Fatalf("Server berhenti: %v", err)
 	}
 }
-
 

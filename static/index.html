@@ -11,432 +11,261 @@
   <!-- Modal Login Autentikasi -->
   <div class="auth-modal" id="authModal" style="display: none;">
     <div class="auth-box">
-      <div class="auth-logo">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-        </svg>
-      </div>
-      <h2>Masuk kompic-next</h2>
-      <p>Optimizer Media Mandiri untuk Immich (Amlogic S905X)</p>
-      <div class="auth-input-group">
-        <input type="password" id="authPassword" placeholder="Masukkan password admin..." onkeydown="if(event.key==='Enter') verifyPassword()">
-      </div>
-      <button class="auth-btn" onclick="verifyPassword()">Buka Dashboard</button>
-      <div class="auth-error" id="authError">Password salah, silakan coba lagi.</div>
+      <div style="font-size: 2.2rem; margin-bottom: 12px;">🔐</div>
+      <h2 style="font-size: 1.3rem; margin-bottom: 6px;">Masuk kompic-next</h2>
+      <p style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 20px;">Akses Kontrol Optimizer Immich S905X</p>
+      <input type="password" id="authPassword" placeholder="Masukkan password..." onkeydown="if(event.key==='Enter') verifyPassword()">
+      <button onclick="verifyPassword()">Buka Dashboard</button>
+      <div id="authError" style="color: var(--danger); font-size: 0.82rem; margin-top: 12px; display: none;">Password salah!</div>
     </div>
   </div>
 
-  <!-- Sidebar Navigasi -->
-  <aside class="sidebar" id="sidebar">
+  <!-- Sidebar -->
+  <aside class="sidebar">
     <div class="brand">
-      <div class="brand-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-        </svg>
-      </div>
+      <div class="brand-icon">⚡</div>
       <div>
-        <span class="brand-title">kompic-next</span>
-        <span class="brand-tag">S905X</span>
+        <div class="brand-title">kompic-next</div>
+        <div style="font-size: 0.7rem; color: var(--text-dim);">Amlogic S905X • 2GB</div>
       </div>
     </div>
 
     <div class="sidebar-nav">
-      <div class="nav-label">Monitoring</div>
       <a class="nav-link active" onclick="switchTab('dashboard')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <rect x="3" y="3" width="7" height="9"></rect>
-          <rect x="14" y="3" width="7" height="5"></rect>
-          <rect x="14" y="12" width="7" height="9"></rect>
-          <rect x="3" y="16" width="7" height="5"></rect>
-        </svg>
-        <span>Dashboard</span>
+        <span>📊</span> <span>Dashboard</span>
       </a>
-
       <a class="nav-link" onclick="switchTab('pipeline')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-        </svg>
-        <span>Pipeline Real-time</span>
+        <span>🕸️</span> <span>n8n Workflow</span>
       </a>
-
       <a class="nav-link" onclick="switchTab('activity')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-          <polyline points="14 2 14 8 20 8"></polyline>
-          <line x1="16" y1="13" x2="8" y2="13"></line>
-          <line x1="16" y1="17" x2="8" y2="17"></line>
-          <polyline points="10 9 9 9 8 9"></polyline>
-        </svg>
-        <span>Log & Riwayat</span>
+        <span>📜</span> <span>Riwayat Log</span>
       </a>
-
-      <div class="nav-label">Manajemen</div>
       <a class="nav-link" onclick="switchTab('settings')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <circle cx="12" cy="12" r="3"></circle>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-        </svg>
-        <span>Konfigurasi</span>
+        <span>⚙️</span> <span>Pengaturan & Cloud</span>
       </a>
     </div>
 
-    <div class="sidebar-footer">
-      <a href="http://192.168.1.2:2283" target="_blank" class="immich-link-btn" title="Kembali ke Immich Web">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-          <polyline points="15 3 21 3 21 9"></polyline>
-          <line x1="10" y1="14" x2="21" y2="3"></line>
-        </svg>
-        <span>Buka Immich (2283)</span>
+    <div style="padding: 16px; border-top: 1px solid var(--border-subtle);">
+      <a href="http://192.168.1.2:2283" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--text-muted); font-size: 0.8rem; text-decoration: none; padding: 10px; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-subtle);">
+        <span>📸</span> <span>Buka Immich (2283)</span>
       </a>
     </div>
   </aside>
 
-  <!-- Layout Utama -->
+  <!-- Konten Utama -->
   <div class="main-wrapper">
     <header class="top-bar">
-      <div class="top-left">
-        <button class="mobile-toggle" onclick="toggleSidebar()">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="3" y1="12" x2="21" y2="12"></line>
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <line x1="3" y1="18" x2="21" y2="18"></line>
-          </svg>
-        </button>
-        <h1 class="page-title" id="pageTitle">Dashboard Ringkasan</h1>
-      </div>
-
-      <div class="top-right">
-        <div class="status-pill">
-          <span class="status-dot pulsing" id="thermalDot"></span>
-          <span id="engineStatusText">Thermal Guard: Aman</span>
+      <h1 style="font-size: 1.15rem; font-weight: 700;" id="pageTitle">Dashboard Ringkasan</h1>
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <span style="font-size: 0.8rem; color: var(--text-dim);" id="headerNodeStatus">Node Aktif: IDLE</span>
+        <div style="display: flex; align-items: center; gap: 6px; background: var(--bg-card); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border-subtle); font-size: 0.8rem;">
+          <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--success);" id="thermalDot"></span>
+          <span id="headerTemp">-- °C</span>
         </div>
-        <button onclick="triggerRescan()" class="btn-primary" style="padding: 6px 14px; font-size: 0.8rem;">
-          ⚡ Scan Baru
-        </button>
       </div>
     </header>
 
     <main class="content-body">
-      <!-- TAB 1: DASHBOARD -->
+      <!-- 6 KARTU METRIK UTAMA (Sesuai Referensi Gambar 4) -->
+      <div class="metric-grid-6">
+        <div class="card-m c-green">
+          <div class="m-title"><span>Total Dipangkas / Dihemat</span> <span>💾</span></div>
+          <div class="m-val" id="valSaved" style="color: var(--success);">0 MB</div>
+          <div class="m-sub" id="subSavedRatio">Hemat 0% (Koleksi: 0 berkas)</div>
+        </div>
+
+        <div class="card-m c-blue">
+          <div class="m-title"><span>Antrean & Worker</span> <span>⚡</span></div>
+          <div class="m-val" id="valQueue" style="color: var(--info);">0</div>
+          <div class="m-sub" id="subWorkers">Aktif memproses: 0 file</div>
+        </div>
+
+        <div class="card-m c-indigo">
+          <div class="m-title"><span>Sukses Kompres</span> <span>✅</span></div>
+          <div class="m-val" id="valSuccess" style="color: #a5b4fc;">0</div>
+          <div class="m-sub">File berhasil dipadatkan</div>
+        </div>
+
+        <div class="card-m c-amber">
+          <div class="m-title"><span>Skip (Cegah Boros)</span> <span>🛡️</span></div>
+          <div class="m-val" id="valSkipped" style="color: var(--warning);">0</div>
+          <div class="m-sub">Asli lebih kecil (tidak diubah)</div>
+        </div>
+
+        <div class="card-m c-red">
+          <div class="m-title"><span>Gagal (Error)</span> <span>⚠️</span></div>
+          <div class="m-val" id="valError" style="color: var(--danger);">0</div>
+          <div class="m-sub">Toleransi error sistem</div>
+        </div>
+
+        <div class="card-m c-purple">
+          <div class="m-title"><span>Status Mesin (S905X)</span> <span>🌡️</span></div>
+          <div class="m-val" id="valTemp" style="color: #d8b4fe;">-- °C</div>
+          <div class="m-sub" id="subTempMode">Mode: 24 Jam Non-Stop</div>
+        </div>
+      </div>
+
+      <!-- QUICK ACTION BAR (Sesuai Gambar 4) -->
+      <div class="action-bar">
+        <div class="btn-group">
+          <button class="btn-act" onclick="setMode('normal')" id="btnNormal">⚙️ Mode Normal</button>
+          <button class="btn-act active-force" onclick="setMode('force')" id="btnForce">🔥 Mode Force (24 Jam)</button>
+          <button class="btn-act" onclick="setControl('pause')" id="btnPause">⏸️ Pause</button>
+          <button class="btn-act" onclick="setControl('resume')" id="btnResume">▶️ Resume</button>
+          <button class="btn-act" onclick="triggerScan()">🔄 Scan Immich</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <input type="text" id="tableFilter" placeholder="Cari file..." onkeyup="filterTable()" style="background: var(--bg-card); border: 1px solid var(--border-subtle); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; outline: none;">
+        </div>
+      </div>
+
+      <!-- TAB 1: DASHBOARD & TABEL LOG UTAMA -->
       <section id="tab-dashboard" class="tab-pane active">
-        <!-- 4 Kartu Metrik Utama -->
-        <div class="metric-grid">
-          <div class="metric-card">
-            <div class="metric-header">
-              <span class="metric-title">Hemat Ruang Disk</span>
-              <div class="metric-icon icon-saved">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-              </div>
-            </div>
-            <div class="metric-val" id="valSaved">0 MB</div>
-            <div class="metric-sub" id="subSavedRatio">Rasio kompresi: 0%</div>
-          </div>
-
-          <div class="metric-card">
-            <div class="metric-header">
-              <span class="metric-title">Media Sukses</span>
-              <div class="metric-icon icon-files">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-              </div>
-            </div>
-            <div class="metric-val" id="valProcessed">0</div>
-            <div class="metric-sub" id="subFilesDetail">Foto & Video teroptimasi</div>
-          </div>
-
-          <div class="metric-card">
-            <div class="metric-header">
-              <span class="metric-title">Suhu CPU (S905X)</span>
-              <div class="metric-icon icon-temp">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path>
-                </svg>
-              </div>
-            </div>
-            <div class="metric-val" id="valTemp">-- °C</div>
-            <div class="metric-sub" id="subTempStatus">Batas Maks: 68°C</div>
-          </div>
-
-          <div class="metric-card">
-            <div class="metric-header">
-              <span class="metric-title">Penggunaan RAM</span>
-              <div class="metric-icon icon-ram">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
-                  <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
-                  <line x1="6" y1="6" x2="6.01" y2="6"></line>
-                  <line x1="6" y1="18" x2="6.01" y2="18"></line>
-                </svg>
-              </div>
-            </div>
-            <div class="metric-val" id="valRam">-- MB</div>
-            <div class="metric-sub" id="subRamTotal">dari 2048 MB RAM</div>
-          </div>
-        </div>
-
-        <!-- S905X Hardware & Storage Panel -->
-        <div class="hw-grid">
-          <div class="card-panel">
-            <div class="panel-header">
-              <div class="panel-title">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-                  <rect x="9" y="9" width="6" height="6"></rect>
-                </svg>
-                <span>Status Prosesor S905X</span>
-              </div>
-              <span class="badge-tag badge-success" id="badgeSoC">4x A53 • 1.5 GHz</span>
-            </div>
-
-            <div class="gauge-container">
-              <div class="circle-gauge">
-                <svg>
-                  <circle class="gauge-bg" cx="55" cy="55" r="45"></circle>
-                  <circle class="gauge-fill" id="tempGaugeCircle" cx="55" cy="55" r="45" stroke-dasharray="283" stroke-dashoffset="100"></circle>
-                </svg>
-                <div class="gauge-text">
-                  <span id="gaugeTempVal">--</span>
-                  <span class="gauge-label">Celsius</span>
-                </div>
-              </div>
-
-              <div class="hw-details">
-                <div class="hw-row">
-                  <span class="label">Load Average (1/5/15m):</span>
-                  <span class="val" id="valLoad">0.10, 0.15, 0.20</span>
-                </div>
-                <div class="hw-row">
-                  <span class="label">Optimizer RAM:</span>
-                  <span class="val" style="color: var(--success);">~12 MB (Go Native)</span>
-                </div>
-                <div class="hw-row">
-                  <span class="label">I/O Priority:</span>
-                  <span class="val">nice 15, ionice 3</span>
-                </div>
-                <div class="hw-row">
-                  <span class="label">Uptime STB:</span>
-                  <span class="val" id="valUptime">--</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="card-panel">
-            <div class="panel-header">
-              <div class="panel-title">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                </svg>
-                <span>Kapasitas Harddisk Eksternal</span>
-              </div>
-              <span class="badge-tag badge-info">/mnt/hdd1</span>
-            </div>
-
-            <div style="margin-top: 10px;">
-              <div style="display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 6px;">
-                <span style="color: var(--text-muted);">Terpakai: <b id="diskUsed" style="color: #fff;">--</b></span>
-                <span style="color: var(--text-muted);">Sisa: <b id="diskFree" style="color: var(--success);">--</b></span>
-              </div>
-              <div class="bar-track">
-                <div class="bar-fill" id="diskBar" style="width: 0%;"></div>
-              </div>
-              <div style="font-size: 0.78rem; color: var(--text-dim); margin-top: 12px;">
-                Direktori Target: <code id="lblImmichDir" style="color: #a5b4fc;">/mnt/hdd1/immich/upload/upload</code>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tabel 5 Aktivitas Terakhir -->
-        <div class="card-panel">
-          <div class="panel-header">
-            <div class="panel-title">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
-              <span>Optimasi Media Terbaru</span>
-            </div>
-            <button onclick="switchTab('activity')" style="background:none; border:none; color:var(--primary); font-size:0.82rem; cursor:pointer; font-weight:600;">Lihat Semua →</button>
-          </div>
-
+        <!-- Tabel Log Kompresi Lengkap -->
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
           <div style="overflow-x: auto;">
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>Nama File</th>
-                  <th>Ukuran Awal</th>
-                  <th>Hasil Kompresi</th>
-                  <th>Hemat</th>
-                  <th>Status GPS & EXIF</th>
-                  <th>Waktu</th>
+                  <th>NAMA FILE</th>
+                  <th>TIPE</th>
+                  <th>STATUS</th>
+                  <th>INTEGRITAS METADATA</th>
+                  <th>ASLI (MB)</th>
+                  <th>KOMPRES (MB)</th>
+                  <th>HEMAT (%)</th>
+                  <th>KATEGORI</th>
+                  <th>WAKTU</th>
                 </tr>
               </thead>
-              <tbody id="recentFilesTable">
-                <tr><td colspan="6" style="text-align:center; color:var(--text-dim); padding:24px;">Memuat data...</td></tr>
+              <tbody id="filesTableBody">
+                <tr><td colspan="9" style="text-align: center; color: var(--text-dim); padding: 24px;">Memuat riwayat kompresi...</td></tr>
               </tbody>
             </table>
           </div>
         </div>
       </section>
 
-      <!-- TAB 2: PIPELINE MONITOR -->
+      <!-- TAB 2: n8n NODE-TO-NODE WORKFLOW FLOWCHART -->
       <section id="tab-pipeline" class="tab-pane">
-        <div class="card-panel" style="margin-bottom: 24px;">
-          <div class="panel-header">
-            <div class="panel-title">Alur Pipeline Optimizer S905X</div>
-            <span class="badge-tag badge-success">Zero GPS Loss Protection</span>
-          </div>
-          <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px;">
-            Setiap file foto atau video yang diunggah ke Immich melewati 5 tahap perlindungan ketat sebelum file asli diganti secara atomik.
-          </p>
-
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; text-align: center;">
-            <div style="background: var(--bg-card); padding: 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-              <div style="font-size: 1.5rem; margin-bottom: 8px;">🔍</div>
-              <div style="font-weight: 600; font-size: 0.9rem; margin-bottom: 4px;">1. Scanner</div>
-              <div style="font-size: 0.75rem; color: var(--text-dim);">Deteksi file media baru</div>
-            </div>
-            <div style="background: var(--bg-card); padding: 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-              <div style="font-size: 1.5rem; margin-bottom: 8px;">🌡️</div>
-              <div style="font-weight: 600; font-size: 0.9rem; margin-bottom: 4px;">2. Thermal Guard</div>
-              <div style="font-size: 0.75rem; color: var(--text-dim);">Cek suhu CPU &lt; 68°C</div>
-            </div>
-            <div style="background: var(--bg-card); padding: 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-              <div style="font-size: 1.5rem; margin-bottom: 8px;">⚙️</div>
-              <div style="font-weight: 600; font-size: 0.9rem; margin-bottom: 4px;">3. Low-Priority Encode</div>
-              <div style="font-size: 0.75rem; color: var(--text-dim);">nice 15, ionice 3, 1 thread</div>
-            </div>
-            <div style="background: var(--bg-card); padding: 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-              <div style="font-size: 1.5rem; margin-bottom: 8px;">📍</div>
-              <div style="font-weight: 600; font-size: 0.9rem; margin-bottom: 4px;">4. ExifTool Transfer</div>
-              <div style="font-size: 0.75rem; color: var(--text-dim);">Salin GPS, XMP, Live Photo</div>
-            </div>
-            <div style="background: var(--bg-card); padding: 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-              <div style="font-size: 1.5rem; margin-bottom: 8px;">🛡️</div>
-              <div style="font-weight: 600; font-size: 0.9rem; margin-bottom: 4px;">5. Skip Boros Check</div>
-              <div style="font-size: 0.75rem; color: var(--text-dim);">Ganti jika terbukti lebih hemat</div>
-            </div>
-          </div>
+        <div style="margin-bottom: 16px;">
+          <h2 style="font-size: 1.1rem; font-weight: 700;">Workflow Eksekusi Real-time (Gaya n8n Node)</h2>
+          <p style="font-size: 0.82rem; color: var(--text-dim);">Alur pemrosesan media otomatis di STB S905X dengan konektor dinamis.</p>
         </div>
 
-        <div class="card-panel">
-          <div class="panel-header">
-            <div class="panel-title">Proses yang Sedang Berjalan (Active Workers)</div>
-          </div>
-          <div id="activeWorkersList" style="color: var(--text-muted); font-size: 0.88rem;">
-            Tidak ada proses aktif. Antrean idle.
+        <div class="n8n-canvas-container">
+          <!-- SVG Bezier Curves Layer -->
+          <svg class="n8n-svg-layer" id="n8nSvg">
+            <!-- Curve 1: Start -> Temp -->
+            <path id="curve-start-temp" class="n8n-curve" d="M 170 190 C 210 190, 210 190, 250 190" />
+            <!-- Curve 2: Temp -> Comp -->
+            <path id="curve-temp-comp" class="n8n-curve" d="M 410 190 C 450 190, 450 190, 490 190" />
+            <!-- Curve 3: Comp -> Compare -->
+            <path id="curve-comp-compare" class="n8n-curve" d="M 650 190 C 690 190, 690 190, 730 190" />
+            <!-- Curve 4: Compare -> Replace (atas) -->
+            <path id="curve-compare-replace" class="n8n-curve" d="M 890 190 C 930 190, 930 110, 970 110" />
+            <!-- Curve 5: Compare -> Skip (bawah) -->
+            <path id="curve-compare-skip" class="n8n-curve" d="M 890 190 C 930 190, 930 270, 970 270" />
+            <!-- Curve 6: Replace -> Cloud Backup -->
+            <path id="curve-replace-cloud" class="n8n-curve" d="M 1130 110 C 1170 110, 1170 110, 1210 110" />
+          </svg>
+
+          <!-- Nodes Wrapper -->
+          <div class="n8n-nodes-wrapper" style="min-width: 1400px;">
+            <!-- Node 1: Start Loop -->
+            <div class="n8n-node" id="node-start" style="left: 10px; top: 130px; position: absolute;">
+              <div class="node-icon">⚡</div>
+              <div class="node-title">Start Loop</div>
+              <div class="node-desc">Cek Antrean Immich</div>
+            </div>
+
+            <!-- Node 2: Cek Suhu -->
+            <div class="n8n-node" id="node-temp_check" style="left: 250px; top: 130px; position: absolute;">
+              <div class="node-icon">🌡️</div>
+              <div class="node-title">Cek Suhu</div>
+              <div class="node-desc">&lt; 68°C Thermal Guard</div>
+            </div>
+
+            <!-- Node 3: Kompresi -->
+            <div class="n8n-node" id="node-compress" style="left: 490px; top: 130px; position: absolute;">
+              <div class="node-icon">⚙️</div>
+              <div class="node-title">Kompresi</div>
+              <div class="node-desc">X265 / Image (nice 15)</div>
+            </div>
+
+            <!-- Node 4: Bandingkan -->
+            <div class="n8n-node" id="node-compare" style="left: 730px; top: 130px; position: absolute;">
+              <div class="node-icon">📊</div>
+              <div class="node-title">Bandingkan</div>
+              <div class="node-desc">Hasil &lt; Asli?</div>
+            </div>
+
+            <!-- Node 5: Replace (Hemat) -->
+            <div class="n8n-node node-green" id="node-replace" style="left: 970px; top: 50px; position: absolute;">
+              <div class="node-icon">✅</div>
+              <div class="node-title" style="color: var(--success);">YA: Replace</div>
+              <div class="node-desc">Ganti Berkas (Hemat)</div>
+            </div>
+
+            <!-- Node 6: Skip (Boros) -->
+            <div class="n8n-node node-amber" id="node-skip" style="left: 970px; top: 210px; position: absolute;">
+              <div class="node-icon">🛡️</div>
+              <div class="node-title" style="color: var(--warning);">TIDAK: Skip</div>
+              <div class="node-desc">Simpan Asli (Cegah Boros)</div>
+            </div>
+
+            <!-- Node 7: Cloud Backup -->
+            <div class="n8n-node" id="node-sync" style="left: 1210px; top: 50px; position: absolute; border-color: var(--info);">
+              <div class="node-icon">☁️</div>
+              <div class="node-title" style="color: var(--info);">Dual Backup</div>
+              <div class="node-desc">MEGA &amp; Google Photos</div>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- TAB 3: ACTIVITY LOG -->
+      <!-- TAB 3: RIWAYAT LOG -->
       <section id="tab-activity" class="tab-pane">
-        <div class="card-panel">
-          <div class="panel-header">
-            <div class="panel-title">Riwayat File yang Telah Dioptimasi</div>
-            <input type="text" id="logSearch" placeholder="Cari file..." onkeyup="filterLogTable()" style="background: var(--bg-card); border: 1px solid var(--border-subtle); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 0.82rem; outline: none;">
-          </div>
-          <div style="overflow-x: auto;">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Nama File</th>
-                  <th>Ukuran Awal</th>
-                  <th>Hasil Akhir</th>
-                  <th>Hemat Ruang</th>
-                  <th>Verifikasi Metadata</th>
-                  <th>Waktu</th>
-                </tr>
-              </thead>
-              <tbody id="allFilesTable">
-                <tr><td colspan="6" style="text-align:center; color:var(--text-dim); padding:24px;">Memuat data...</td></tr>
-              </tbody>
-            </table>
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 20px;">
+          <h3 style="margin-bottom: 12px;">Log Aktivitas Sistem</h3>
+          <div id="rawLogBox" style="background: var(--bg-base); font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; padding: 16px; border-radius: 6px; height: 400px; overflow-y: auto; color: #a5b4fc; line-height: 1.6;">
+            Memuat catatan log...
           </div>
         </div>
       </section>
 
-      <!-- TAB 4: SETTINGS -->
+      <!-- TAB 4: PENGATURAN & CLOUD BACKUP -->
       <section id="tab-settings" class="tab-pane">
-        <form id="settingsForm" onsubmit="saveSettings(event)">
-          <div class="settings-grid">
-            <!-- Group 1: General & Immich -->
-            <div class="setting-group">
-              <div class="setting-title">Server & Direktori Immich</div>
-              <div class="form-item">
-                <label class="form-label">Port Web UI:</label>
-                <input type="number" id="cfgPort" class="form-input" required>
-              </div>
-              <div class="form-item">
-                <label class="form-label">Lokasi Upload Immich:</label>
-                <input type="text" id="cfgImmichDir" class="form-input" required>
-              </div>
-              <div class="form-item">
-                <label class="form-label">Ubah Password Admin (Kosongkan jika tidak diubah):</label>
-                <input type="password" id="cfgNewPassword" class="form-input" placeholder="Password baru...">
-              </div>
+        <form id="settingsForm" onsubmit="saveSettings(event)" style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 24px;">
+          <h3 style="margin-bottom: 20px;">Konfigurasi Sistem &amp; Cloud Backup</h3>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+            <div>
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Port Web UI:</label>
+              <input type="number" id="cfgPort" style="width: 100%; background: var(--bg-card); border: 1px solid var(--border-subtle); color: #fff; padding: 8px 12px; border-radius: 6px; margin-bottom: 14px;">
+
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Direktori Upload Immich:</label>
+              <input type="text" id="cfgImmichDir" style="width: 100%; background: var(--bg-card); border: 1px solid var(--border-subtle); color: #fff; padding: 8px 12px; border-radius: 6px; margin-bottom: 14px;">
+
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Ubah Password Admin:</label>
+              <input type="password" id="cfgNewPassword" placeholder="Kosongkan jika tidak diubah" style="width: 100%; background: var(--bg-card); border: 1px solid var(--border-subtle); color: #fff; padding: 8px 12px; border-radius: 6px; margin-bottom: 14px;">
             </div>
 
-            <!-- Group 2: Hardware & Thermal S905X -->
-            <div class="setting-group">
-              <div class="setting-title">Suhu & Resource S905X</div>
-              <div class="form-item">
-                <label class="form-label">Batas Suhu Maksimal (°C):</label>
-                <input type="number" id="cfgMaxTemp" class="form-input" required>
-              </div>
-              <div class="form-item">
-                <label class="form-label">Suhu Cooldown (°C):</label>
-                <input type="number" id="cfgCooldownTemp" class="form-input" required>
-              </div>
-              <div class="form-item">
-                <label class="form-label">Thread CPU Video:</label>
-                <input type="number" id="cfgVideoThreads" class="form-input" min="1" max="4" required>
-              </div>
-            </div>
+            <div>
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Rclone Remote MEGA:</label>
+              <input type="text" id="cfgRcloneRemote" placeholder="mega:ImmichBackup" style="width: 100%; background: var(--bg-card); border: 1px solid var(--border-subtle); color: #fff; padding: 8px 12px; border-radius: 6px; margin-bottom: 14px;">
 
-            <!-- Group 3: Kompresi Foto & Video -->
-            <div class="setting-group">
-              <div class="setting-title">Kompresi Foto & Video</div>
-              <div class="form-item">
-                <label class="form-label">Kualitas Foto JPEG/HEIC (1-100):</label>
-                <input type="number" id="cfgPhotoQuality" class="form-input" min="50" max="100" required>
-              </div>
-              <div class="form-item">
-                <label class="form-label">Maksimal Dimensi Terpanjang (px):</label>
-                <input type="number" id="cfgPhotoMaxDim" class="form-input" required>
-                <small style="color:var(--text-dim); font-size:0.75rem;">Aspek rasio asli selalu dipertahankan 100%.</small>
-              </div>
-              <div class="form-item">
-                <label class="form-label">Video CRF (20-30):</label>
-                <input type="number" id="cfgVideoCRF" class="form-input" min="18" max="35" required>
-              </div>
-            </div>
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Rclone Remote Google Photos:</label>
+              <input type="text" id="cfgRcloneGPhotos" placeholder="gphotos:media/by-month" style="width: 100%; background: var(--bg-card); border: 1px solid var(--border-subtle); color: #fff; padding: 8px 12px; border-radius: 6px; margin-bottom: 14px;">
 
-            <!-- Group 4: Workers -->
-            <div class="setting-group">
-              <div class="setting-title">Antrean & Workers</div>
-              <div class="form-item">
-                <label class="form-label">Max Video Worker:</label>
-                <input type="number" id="cfgMaxVideoWorkers" class="form-input" min="1" max="2" required>
-              </div>
-              <div class="form-item">
-                <label class="form-label">Max Photo Worker:</label>
-                <input type="number" id="cfgMaxPhotoWorkers" class="form-input" min="1" max="4" required>
-              </div>
-              <div style="margin-top: 24px;">
-                <button type="submit" class="btn-primary" style="width: 100%;">💾 Simpan Konfigurasi</button>
-              </div>
+              <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Batas Suhu CPU Maks (°C):</label>
+              <input type="number" id="cfgMaxTemp" style="width: 100%; background: var(--bg-card); border: 1px solid var(--border-subtle); color: #fff; padding: 8px 12px; border-radius: 6px; margin-bottom: 14px;">
             </div>
           </div>
+
+          <button type="submit" style="background: var(--primary); color: #fff; border: none; border-radius: 6px; padding: 10px 24px; font-weight: 600; cursor: pointer; margin-top: 10px;">
+            💾 Simpan Konfigurasi
+          </button>
         </form>
       </section>
     </main>

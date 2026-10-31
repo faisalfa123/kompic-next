@@ -12,7 +12,7 @@
     "log_dir": "logs"
   },
   "compression": {
-    "mode": "normal",
+    "mode": "force",
     "video_codec": "libx265",
     "video_preset": "ultrafast",
     "video_crf": 26,
@@ -35,9 +35,10 @@
     "end_hour": 8
   },
   "backup": {
-    "enabled": false,
-    "mode": "normal",
+    "enabled": true,
+    "mode": "force",
     "rclone_remote": "mega:ImmichBackup",
+    "rclone_remote_gphotos": "gphotos:media/by-month",
     "rclone_args": "--transfers=1 --checkers=2 --fast-list --bwlimit=3M"
   }
 }
